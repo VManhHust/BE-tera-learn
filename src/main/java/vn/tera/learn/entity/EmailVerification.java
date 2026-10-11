@@ -6,10 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "email_verifications")
 public class EmailVerification {
 
@@ -35,18 +39,4 @@ public class EmailVerification {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getCodeHash() { return codeHash; }
-    public void setCodeHash(String codeHash) { this.codeHash = codeHash; }
-    public Instant getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
-    public int getAttempts() { return attempts; }
-    public void setAttempts(int attempts) { this.attempts = attempts; }
-    public boolean isUsed() { return used; }
-    public void setUsed(boolean used) { this.used = used; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

@@ -1,25 +1,31 @@
 package vn.tera.learn.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import vn.tera.learn.entity.enums.PaymentOrderStatus;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public record PaymentOrderResponse(
-        UUID orderId,
-        String planCode,
-        String planName,
-        long amount,
-        String currency,
-        PaymentOrderStatus status,
-        String paymentCode,
-        String qrCodeUrl,
-        String bank,
-        String accountNumber,
-        String accountHolder,
-        Instant expiresAt,
-        Instant paidAt,
-        Instant plusStartsAt,
-        Instant plusExpiresAt
-) {}
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PaymentOrderResponse {
 
+    private UUID orderId;
+    private String planCode;
+    private String planName;
+    private long amount;
+    private String currency;
+    private PaymentOrderStatus status;
+    private String paymentCode;
+    private String qrCodeUrl;
+    private String bank;
+    private String accountNumber;
+    private String accountHolder;
+    private Instant expiresAt;
+    private Instant paidAt;
+    private Instant plusStartsAt;
+    private Instant plusExpiresAt;
+}

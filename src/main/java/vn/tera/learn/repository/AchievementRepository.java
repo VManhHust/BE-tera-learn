@@ -1,5 +1,8 @@
 package vn.tera.learn.repository;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -253,66 +256,85 @@ public class AchievementRepository {
                     longest_streak_days = EXCLUDED.longest_streak_days,
                     last_activity_date = EXCLUDED.last_activity_date,
                     calculated_at = EXCLUDED.calculated_at
-                """, userId, snapshot.totalXp(), snapshot.currentLevel(), snapshot.rankName(),
-                snapshot.completedLessons(), snapshot.completedSections(), snapshot.answeredQuestions(),
-                snapshot.correctAnswers(), snapshot.accuracyPercent(), snapshot.totalStudySeconds(),
-                snapshot.activeDays(), snapshot.currentStreakDays(), snapshot.longestStreakDays(),
-                snapshot.lastActivityDate() == null ? null : Date.valueOf(snapshot.lastActivityDate()),
-                Timestamp.from(snapshot.calculatedAt()));
+                """, userId, snapshot.getTotalXp(), snapshot.getCurrentLevel(), snapshot.getRankName(),
+                snapshot.getCompletedLessons(), snapshot.getCompletedSections(), snapshot.getAnsweredQuestions(),
+                snapshot.getCorrectAnswers(), snapshot.getAccuracyPercent(), snapshot.getTotalStudySeconds(),
+                snapshot.getActiveDays(), snapshot.getCurrentStreakDays(), snapshot.getLongestStreakDays(),
+                snapshot.getLastActivityDate() == null ? null : Date.valueOf(snapshot.getLastActivityDate()),
+                Timestamp.from(snapshot.getCalculatedAt()));
     }
 
-    public record SummarySource(
-            long completedLessons,
-            long completedSections,
-            long answeredQuestions,
-            long correctAnswers,
-            long totalStudySeconds
-    ) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SummarySource {
+        private long completedLessons;
+        private long completedSections;
+        private long answeredQuestions;
+        private long correctAnswers;
+        private long totalStudySeconds;
 
-    public record WeeklyGrowthSource(
-            LocalDate weekStart,
-            long studySeconds,
-            long answeredQuestions,
-            long correctAnswers,
-            long completedLessons
-    ) {}
+    }
 
-    public record SubjectMasterySource(
-            String subjectCode,
-            String subjectName,
-            String accent,
-            long completedLessons,
-            long totalLessons,
-            long completedUnits,
-            long totalUnits,
-            long answeredQuestions,
-            long correctAnswers
-    ) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WeeklyGrowthSource {
+        private LocalDate weekStart;
+        private long studySeconds;
+        private long answeredQuestions;
+        private long correctAnswers;
+        private long completedLessons;
 
-    public record LessonSuggestionSource(
-            long lessonId,
-            String title,
-            String subjectCode,
-            String subjectName,
-            short currentUnit,
-            short totalUnits
-    ) {}
+    }
 
-    public record AchievementSnapshot(
-            long totalXp,
-            int currentLevel,
-            String rankName,
-            long completedLessons,
-            long completedSections,
-            long answeredQuestions,
-            long correctAnswers,
-            double accuracyPercent,
-            long totalStudySeconds,
-            int activeDays,
-            int currentStreakDays,
-            int longestStreakDays,
-            LocalDate lastActivityDate,
-            Instant calculatedAt
-    ) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SubjectMasterySource {
+        private String subjectCode;
+        private String subjectName;
+        private String accent;
+        private long completedLessons;
+        private long totalLessons;
+        private long completedUnits;
+        private long totalUnits;
+        private long answeredQuestions;
+        private long correctAnswers;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LessonSuggestionSource {
+        private long lessonId;
+        private String title;
+        private String subjectCode;
+        private String subjectName;
+        private short currentUnit;
+        private short totalUnits;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AchievementSnapshot {
+        private long totalXp;
+        private int currentLevel;
+        private String rankName;
+        private long completedLessons;
+        private long completedSections;
+        private long answeredQuestions;
+        private long correctAnswers;
+        private double accuracyPercent;
+        private long totalStudySeconds;
+        private int activeDays;
+        private int currentStreakDays;
+        private int longestStreakDays;
+        private LocalDate lastActivityDate;
+        private Instant calculatedAt;
+
+    }
 }
-

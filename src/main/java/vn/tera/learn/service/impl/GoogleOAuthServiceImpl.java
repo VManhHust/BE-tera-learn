@@ -27,19 +27,15 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
     private final Map<String, Instant> pendingStates = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
     private final RestClient restClient = RestClient.create();
-    private final String clientId;
-    private final String clientSecret;
-    private final String redirectUri;
 
-    public GoogleOAuthServiceImpl(
-            @Value("${google.oauth.client-id:}") String clientId,
-            @Value("${google.oauth.client-secret:}") String clientSecret,
-            @Value("${google.oauth.redirect-uri}") String redirectUri
-    ) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.redirectUri = redirectUri;
-    }
+    @Value("${google.oauth.client-id:}")
+    private String clientId;
+
+    @Value("${google.oauth.client-secret:}")
+    private String clientSecret;
+
+    @Value("${google.oauth.redirect-uri}")
+    private String redirectUri;
 
     @Override
     public String buildAuthorizationUrl() {

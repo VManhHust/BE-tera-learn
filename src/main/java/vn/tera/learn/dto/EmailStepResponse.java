@@ -1,21 +1,12 @@
 package vn.tera.learn.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmailStepResponse {
-
     private String nextStep;
-
-    public EmailStepResponse() {
-    }
-
-    public EmailStepResponse(String nextStep) {
-        this.nextStep = nextStep;
-    }
-
-    public String getNextStep() {
-        return nextStep;
-    }
-
-    public void setNextStep(String nextStep) {
-        this.nextStep = nextStep;
-    }
 }

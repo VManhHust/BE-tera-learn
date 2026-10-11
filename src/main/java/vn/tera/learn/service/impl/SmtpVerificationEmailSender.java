@@ -18,17 +18,15 @@ public class SmtpVerificationEmailSender implements VerificationEmailSender {
     private static final Logger LOGGER = LoggerFactory.getLogger(SmtpVerificationEmailSender.class);
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
-    private final boolean deliveryEnabled;
-    private final String fromAddress;
 
-    public SmtpVerificationEmailSender(
-            ObjectProvider<JavaMailSender> mailSenderProvider,
-            @Value("${app.mail.delivery-enabled:false}") boolean deliveryEnabled,
-            @Value("${app.mail.from:no-reply@tera.vn}") String fromAddress
-    ) {
+    @Value("${app.mail.delivery-enabled:false}")
+    private boolean deliveryEnabled;
+
+    @Value("${app.mail.from:no-reply@tera.vn}")
+    private String fromAddress;
+
+    public SmtpVerificationEmailSender(ObjectProvider<JavaMailSender> mailSenderProvider) {
         this.mailSenderProvider = mailSenderProvider;
-        this.deliveryEnabled = deliveryEnabled;
-        this.fromAddress = fromAddress;
     }
 
     @Override

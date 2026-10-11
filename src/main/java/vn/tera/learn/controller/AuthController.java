@@ -49,8 +49,13 @@ public class AuthController {
     private final EmailAuthService emailAuthService;
     private final GoogleOAuthService googleOAuthService;
     private final UserRepository userRepository;
-    private final String frontendUrl;
-    private final boolean secureCookies;
+
+    @Value("${frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean secureCookies;
+
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, OAuthSession> pendingOAuthSessions = new ConcurrentHashMap<>();
 
@@ -58,16 +63,12 @@ public class AuthController {
             AuthService authService,
             EmailAuthService emailAuthService,
             GoogleOAuthService googleOAuthService,
-            UserRepository userRepository,
-            @Value("${frontend.url:http://localhost:3000}") String frontendUrl,
-            @Value("${app.cookie.secure:false}") boolean secureCookies
+            UserRepository userRepository
     ) {
         this.authService = authService;
         this.emailAuthService = emailAuthService;
         this.googleOAuthService = googleOAuthService;
         this.userRepository = userRepository;
-        this.frontendUrl = frontendUrl;
-        this.secureCookies = secureCookies;
     }
 
     @PostMapping("/email/resolve")

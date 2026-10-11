@@ -9,6 +9,7 @@ import vn.tera.learn.dto.LessonResourceDownload;
 import vn.tera.learn.entity.Lesson;
 import vn.tera.learn.entity.LessonDetail;
 import vn.tera.learn.entity.LessonResource;
+import vn.tera.learn.entity.User;
 import vn.tera.learn.entity.UserLessonId;
 import vn.tera.learn.entity.UserLessonProgress;
 import vn.tera.learn.entity.enums.LessonProgressStatus;
@@ -21,6 +22,7 @@ import vn.tera.learn.repository.UserLessonBookmarkRepository;
 import vn.tera.learn.repository.UserLessonProgressRepository;
 import vn.tera.learn.repository.UserRepository;
 import vn.tera.learn.service.LessonDetailService;
+import vn.tera.learn.service.PlusAccessService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -36,6 +38,7 @@ public class LessonDetailServiceImpl implements LessonDetailService {
     private final UserLessonProgressRepository progressRepository;
     private final UserLessonBookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
+    private final PlusAccessService plusAccessService;
 
     public LessonDetailServiceImpl(
             LessonRepository lessonRepository,
@@ -45,7 +48,8 @@ public class LessonDetailServiceImpl implements LessonDetailService {
             LessonResourceRepository resourceRepository,
             UserLessonProgressRepository progressRepository,
             UserLessonBookmarkRepository bookmarkRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            PlusAccessService plusAccessService
     ) {
         this.lessonRepository = lessonRepository;
         this.detailRepository = detailRepository;
@@ -55,14 +59,16 @@ public class LessonDetailServiceImpl implements LessonDetailService {
         this.progressRepository = progressRepository;
         this.bookmarkRepository = bookmarkRepository;
         this.userRepository = userRepository;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public LessonDetailResponse getLessonDetail(Long userId, Long lessonId) {
-        requireUser(userId);
+        User user = requireUser(userId);
         Lesson lesson = lessonRepository.findByIdAndPublishedTrue(lessonId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy bài học"));
+        plusAccessService.requireLessonAccess(user, lesson);
         LessonDetail detail = detailRepository.findById(lesson.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bài học chưa có nội dung chi tiết"));
         UserLessonId userLessonId = new UserLessonId(userId, lesson.getId());
@@ -81,6 +87,7 @@ public class LessonDetailServiceImpl implements LessonDetailService {
         response.setThumbnailUrl(lesson.getThumbnailUrl());
         response.setDifficulty(lesson.getDifficulty().name());
         response.setProgram(lesson.getProgram().name());
+        response.setPlusRequired(lesson.isPlusRequired());
         response.setTotalUnits(lesson.getTotalUnits());
         response.setViewCount(lesson.getViewCount());
         response.setLikeCount(lesson.getLikeCount());
@@ -128,7 +135,10 @@ public class LessonDetailServiceImpl implements LessonDetailService {
     @Override
     @Transactional(readOnly = true)
     public LessonResourceDownload downloadResource(Long userId, Long lessonId, Long resourceId) {
-        requireUser(userId);
+        User user = requireUser(userId);
+        Lesson lesson = lessonRepository.findByIdAndPublishedTrue(lessonId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy bài học"));
+        plusAccessService.requireLessonAccess(user, lesson);
         LessonResource resource = resourceRepository.findByIdAndLessonId(resourceId, lessonId)
                 .filter(LessonResource::isDownloadable)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu"));
@@ -150,9 +160,8 @@ public class LessonDetailServiceImpl implements LessonDetailService {
         );
     }
 
-    private void requireUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng");
-        }
+    private User requireUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
     }
 }

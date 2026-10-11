@@ -30,16 +30,16 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class PaymentController {
     private final PaymentService paymentService;
     private final SepayWebhookVerifier webhookVerifier;
-    private final String webhookSecret;
+
+    @Value("${payment.sepay.webhook-secret:}")
+    private String webhookSecret;
 
     public PaymentController(
             PaymentService paymentService,
-            SepayWebhookVerifier webhookVerifier,
-            @Value("${payment.sepay.webhook-secret:}") String webhookSecret
+            SepayWebhookVerifier webhookVerifier
     ) {
         this.paymentService = paymentService;
         this.webhookVerifier = webhookVerifier;
-        this.webhookSecret = webhookSecret;
     }
 
     @GetMapping("/plus/plans")
@@ -52,7 +52,7 @@ public class PaymentController {
             @AuthenticationPrincipal JwtClaims claims,
             @Valid @RequestBody CreatePlusOrderRequest request
     ) {
-        return ResponseEntity.ok(paymentService.createOrder(claims.getUserId(), request.planCode()));
+        return ResponseEntity.ok(paymentService.createOrder(claims.getUserId(), request.getPlanCode()));
     }
 
     @GetMapping("/orders/{orderId}")
@@ -81,4 +81,3 @@ public class PaymentController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 }
-

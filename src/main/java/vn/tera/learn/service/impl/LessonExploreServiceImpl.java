@@ -24,6 +24,7 @@ import vn.tera.learn.repository.UserLessonBookmarkRepository;
 import vn.tera.learn.repository.UserLessonProgressRepository;
 import vn.tera.learn.repository.UserRepository;
 import vn.tera.learn.service.LessonExploreService;
+import vn.tera.learn.service.PlusAccessService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +45,7 @@ public class LessonExploreServiceImpl implements LessonExploreService {
     private final LearningSessionRepository sessionRepository;
     private final LearningSessionAnswerRepository answerRepository;
     private final FocusedChoiceRepository focusedChoices;
+    private final PlusAccessService plusAccessService;
 
     public LessonExploreServiceImpl(
             SubjectRepository subjectRepository,
@@ -53,7 +55,8 @@ public class LessonExploreServiceImpl implements LessonExploreService {
             UserLessonBookmarkRepository bookmarkRepository,
             LearningSessionRepository sessionRepository,
             LearningSessionAnswerRepository answerRepository,
-            FocusedChoiceRepository focusedChoices
+            FocusedChoiceRepository focusedChoices,
+            PlusAccessService plusAccessService
     ) {
         this.subjectRepository = subjectRepository;
         this.lessonRepository = lessonRepository;
@@ -63,6 +66,7 @@ public class LessonExploreServiceImpl implements LessonExploreService {
         this.sessionRepository = sessionRepository;
         this.answerRepository = answerRepository;
         this.focusedChoices = focusedChoices;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
@@ -178,8 +182,9 @@ public class LessonExploreServiceImpl implements LessonExploreService {
     @Override
     @Transactional(readOnly = true)
     public LessonExploreResponse.LessonCard startLesson(Long userId, Long lessonId) {
-        requireUser(userId);
+        User user = requireUser(userId);
         Lesson lesson = requireLesson(lessonId);
+        plusAccessService.requireLessonAccess(user, lesson);
         UserLessonId id = new UserLessonId(userId, lessonId);
         UserLessonProgress progress = progressRepository.findById(id).orElse(null);
         return toLessonCard(lesson, progress, bookmarkRepository.existsById(id));
@@ -188,10 +193,12 @@ public class LessonExploreServiceImpl implements LessonExploreService {
     @Override
     @Transactional
     public LessonExploreResponse.LessonCard restartLesson(Long userId, Long lessonId) {
+        User user = requireUser(userId);
         Lesson lesson = requireLesson(lessonId);
+        plusAccessService.requireLessonAccess(user, lesson);
         UserLessonId id = new UserLessonId(userId, lessonId);
         UserLessonProgress progress = progressRepository.findById(id)
-                .orElseGet(() -> createProgress(requireUser(userId), lesson, id));
+                .orElseGet(() -> createProgress(user, lesson, id));
 
         Instant now = Instant.now();
         List<LearningSession> sessions = sessionRepository
@@ -229,14 +236,16 @@ public class LessonExploreServiceImpl implements LessonExploreService {
     @Override
     @Transactional
     public LessonExploreResponse.LessonCard updateProgress(Long userId, Long lessonId, short currentUnit) {
+        User user = requireUser(userId);
         Lesson lesson = requireLesson(lessonId);
+        plusAccessService.requireLessonAccess(user, lesson);
         if (currentUnit < 0 || currentUnit > lesson.getTotalUnits()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tiến độ bài học không hợp lệ");
         }
 
         UserLessonId id = new UserLessonId(userId, lessonId);
         UserLessonProgress progress = progressRepository.findById(id)
-                .orElseGet(() -> createProgress(requireUser(userId), lesson, id));
+                .orElseGet(() -> createProgress(user, lesson, id));
         Instant now = Instant.now();
 
         progress.setCurrentUnit(currentUnit);
@@ -305,6 +314,7 @@ public class LessonExploreServiceImpl implements LessonExploreService {
         response.setThumbnailUrl(lesson.getThumbnailUrl());
         response.setDifficulty(lesson.getDifficulty().name());
         response.setProgram(lesson.getProgram().name());
+        response.setPlusRequired(lesson.isPlusRequired());
         response.setTotalUnits(lesson.getTotalUnits());
         response.setCurrentUnit(currentUnit);
         response.setProgressPercent(Math.round(currentUnit * 100F / lesson.getTotalUnits()));

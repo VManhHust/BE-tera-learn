@@ -11,9 +11,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import vn.tera.learn.entity.enums.LessonResourceType;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "lesson_resources")
 public class LessonResource {
 
@@ -53,91 +57,4 @@ public class LessonResource {
     @Column(nullable = false)
     private short sortOrder;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LessonResourceType getResourceType() {
-        return resourceType;
-    }
-
-    public void setResourceType(LessonResourceType resourceType) {
-        this.resourceType = resourceType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public String getContentText() {
-        return contentText;
-    }
-
-    public void setContentText(String contentText) {
-        this.contentText = contentText;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public boolean isDownloadable() {
-        return downloadable;
-    }
-
-    public void setDownloadable(boolean downloadable) {
-        this.downloadable = downloadable;
-    }
-
-    public short getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(short sortOrder) {
-        this.sortOrder = sortOrder;
-    }
 }

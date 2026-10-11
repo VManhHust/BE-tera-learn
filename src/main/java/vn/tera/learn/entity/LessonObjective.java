@@ -9,8 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "lesson_objectives")
 public class LessonObjective {
 
@@ -28,35 +32,4 @@ public class LessonObjective {
     @Column(nullable = false)
     private short sortOrder;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public short getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(short sortOrder) {
-        this.sortOrder = sortOrder;
-    }
 }

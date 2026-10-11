@@ -28,16 +28,16 @@ public class AuthServiceImpl implements AuthService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
-    private final long refreshTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private long refreshTokenExpiration;
 
     public AuthServiceImpl(
             RefreshTokenRepository refreshTokenRepository,
-            JwtProvider jwtProvider,
-            @Value("${jwt.refresh-token-expiration}") long refreshTokenExpiration
+            JwtProvider jwtProvider
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtProvider = jwtProvider;
-        this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
     @Override

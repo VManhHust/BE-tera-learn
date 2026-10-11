@@ -1,81 +1,106 @@
 package vn.tera.learn.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-public record AchievementResponse(
-        Summary summary,
-        LevelProgress levelProgress,
-        List<WeeklyGrowth> growth,
-        List<SubjectMastery> subjects,
-        List<Milestone> milestones,
-        List<Recommendation> recommendations,
-        Instant calculatedAt
-) {
-    public record Summary(
-            long totalXp,
-            int level,
-            String rank,
-            long completedLessons,
-            long completedSections,
-            long answeredQuestions,
-            long correctAnswers,
-            double accuracyPercent,
-            long totalStudySeconds,
-            int activeDays,
-            int currentStreakDays,
-            int longestStreakDays,
-            LocalDate lastActivityDate
-    ) {}
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class AchievementResponse {
 
-    public record LevelProgress(
-            long xpInLevel,
-            long xpForNextLevel,
-            long xpRemaining,
-            int progressPercent,
-            String nextRank
-    ) {}
+    private Summary summary;
+    private LevelProgress levelProgress;
+    private List<WeeklyGrowth> growth;
+    private List<SubjectMastery> subjects;
+    private List<Milestone> milestones;
+    private List<Recommendation> recommendations;
+    private Instant calculatedAt;
 
-    public record WeeklyGrowth(
-            LocalDate weekStart,
-            String label,
-            long earnedXp,
-            long cumulativeXp,
-            long studySeconds,
-            long completedLessons
-    ) {}
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Summary {
+        private long totalXp;
+        private int level;
+        private String rank;
+        private long completedLessons;
+        private long completedSections;
+        private long answeredQuestions;
+        private long correctAnswers;
+        private double accuracyPercent;
+        private long totalStudySeconds;
+        private int activeDays;
+        private int currentStreakDays;
+        private int longestStreakDays;
+        private LocalDate lastActivityDate;
+    }
 
-    public record SubjectMastery(
-            String subjectCode,
-            String subjectName,
-            String accent,
-            long completedLessons,
-            long totalLessons,
-            long answeredQuestions,
-            long correctAnswers,
-            int progressPercent,
-            int accuracyPercent,
-            int masteryPercent
-    ) {}
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LevelProgress {
+        private long xpInLevel;
+        private long xpForNextLevel;
+        private long xpRemaining;
+        private int progressPercent;
+        private String nextRank;
+    }
 
-    public record Milestone(
-            String code,
-            String title,
-            String description,
-            long currentValue,
-            long targetValue,
-            int progressPercent,
-            boolean achieved
-    ) {}
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WeeklyGrowth {
+        private LocalDate weekStart;
+        private String label;
+        private long earnedXp;
+        private long cumulativeXp;
+        private long studySeconds;
+        private long completedLessons;
+    }
 
-    public record Recommendation(
-            String type,
-            String title,
-            String description,
-            String actionLabel,
-            Long lessonId,
-            String subjectCode
-    ) {}
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SubjectMastery {
+        private String subjectCode;
+        private String subjectName;
+        private String accent;
+        private long completedLessons;
+        private long totalLessons;
+        private long answeredQuestions;
+        private long correctAnswers;
+        private int progressPercent;
+        private int accuracyPercent;
+        private int masteryPercent;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Milestone {
+        private String code;
+        private String title;
+        private String description;
+        private long currentValue;
+        private long targetValue;
+        private int progressPercent;
+        private boolean achieved;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Recommendation {
+        private String type;
+        private String title;
+        private String description;
+        private String actionLabel;
+        private Long lessonId;
+        private String subjectCode;
+    }
 }
-

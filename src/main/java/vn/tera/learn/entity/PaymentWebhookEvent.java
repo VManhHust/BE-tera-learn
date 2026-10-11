@@ -4,10 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "payment_webhook_events")
 public class PaymentWebhookEvent {
     @Id
@@ -19,11 +23,4 @@ public class PaymentWebhookEvent {
     @Column(nullable = false)
     private Instant receivedAt;
 
-    public Long getTransactionId() { return transactionId; }
-    public void setTransactionId(Long transactionId) { this.transactionId = transactionId; }
-    public String getRawPayload() { return rawPayload; }
-    public void setRawPayload(String rawPayload) { this.rawPayload = rawPayload; }
-    public Instant getReceivedAt() { return receivedAt; }
-    public void setReceivedAt(Instant receivedAt) { this.receivedAt = receivedAt; }
 }
-

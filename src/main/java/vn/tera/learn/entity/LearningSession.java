@@ -11,11 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import vn.tera.learn.entity.enums.LearningSessionStatus;
 
 import java.time.Instant;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "learning_sessions")
 public class LearningSession {
 
@@ -59,31 +63,4 @@ public class LearningSession {
     @Column(nullable = false)
     private boolean focusedTimedOut;
 
-    public Integer getFocusedDurationSeconds() { return focusedDurationSeconds; }
-    public void setFocusedDurationSeconds(Integer seconds) { this.focusedDurationSeconds = seconds; }
-    public Integer getFocusedRemainingSeconds() { return focusedRemainingSeconds; }
-    public void setFocusedRemainingSeconds(Integer seconds) { this.focusedRemainingSeconds = seconds; }
-    public Instant getFocusedResumedAt() { return focusedResumedAt; }
-    public void setFocusedResumedAt(Instant focusedResumedAt) { this.focusedResumedAt = focusedResumedAt; }
-    public boolean isFocusedTimedOut() { return focusedTimedOut; }
-    public void setFocusedTimedOut(boolean focusedTimedOut) { this.focusedTimedOut = focusedTimedOut; }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    public Lesson getLesson() { return lesson; }
-    public void setLesson(Lesson lesson) { this.lesson = lesson; }
-    public LessonSection getSection() { return section; }
-    public void setSection(LessonSection section) { this.section = section; }
-    public LearningMode getMode() { return mode; }
-    public void setMode(LearningMode mode) { this.mode = mode; }
-    public LearningSessionStatus getStatus() { return status; }
-    public void setStatus(LearningSessionStatus status) { this.status = status; }
-    public Instant getStartedAt() { return startedAt; }
-    public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
-    public Instant getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
-    public Instant getCompletedAt() { return completedAt; }
-    public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }

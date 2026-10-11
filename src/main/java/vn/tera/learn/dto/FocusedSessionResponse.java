@@ -1,31 +1,41 @@
 package vn.tera.learn.dto;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class FocusedSessionResponse {
-    public Long sessionId;
-    public Long lessonId;
-    public String lessonTitle;
-    public String status;
-    public Instant serverNow;
-    public Instant expiresAt;
-    public int durationSeconds;
-    public long remainingSeconds;
-    public boolean timedOut;
-    public int correctCount;
-    public int answeredCount;
-    public List<Question> questions;
+    private Long sessionId;
+    private Long lessonId;
+    private String lessonTitle;
+    private String status;
+    private Instant serverNow;
+    private Instant expiresAt;
+    private int durationSeconds;
+    private long remainingSeconds;
+    private boolean timedOut;
+    private int correctCount;
+    private int answeredCount;
+    private List<Question> questions;
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
     public static class Question {
-        public Long id;
-        public Long sectionId;
-        public short sectionNumber;
-        public String sectionTitle;
-        public String prompt;
-        public String questionType;
-        public List<ChillLearningSessionResponse.Option> options;
-        public List<Long> selectedOptionIds;
-        public ChillAnswerResponse answer;
+        private Long id;
+        private Long sectionId;
+        private short sectionNumber;
+        private String sectionTitle;
+        private String prompt;
+        private String questionType;
+        private List<ChillLearningSessionResponse.Option> options;
+        private List<Long> selectedOptionIds;
+        private ChillAnswerResponse answer;
     }
 }

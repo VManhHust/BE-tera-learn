@@ -42,31 +42,31 @@ public class EmailAuthServiceImpl implements EmailAuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final SecureRandom secureRandom = new SecureRandom();
-    private final byte[] codeSecret;
-    private final long ttlSeconds;
-    private final long resendCooldownSeconds;
-    private final int maxAttempts;
+
+    @Value("${email.verification.code-secret}")
+    private String codeSecret;
+
+    @Value("${email.verification.ttl-seconds:600}")
+    private long ttlSeconds;
+
+    @Value("${email.verification.resend-cooldown-seconds:60}")
+    private long resendCooldownSeconds;
+
+    @Value("${email.verification.max-attempts:5}")
+    private int maxAttempts;
 
     public EmailAuthServiceImpl(
             UserRepository userRepository,
             EmailVerificationRepository verificationRepository,
             VerificationEmailSender emailSender,
             PasswordEncoder passwordEncoder,
-            AuthService authService,
-            @Value("${email.verification.code-secret}") String codeSecret,
-            @Value("${email.verification.ttl-seconds:600}") long ttlSeconds,
-            @Value("${email.verification.resend-cooldown-seconds:60}") long resendCooldownSeconds,
-            @Value("${email.verification.max-attempts:5}") int maxAttempts
+            AuthService authService
     ) {
         this.userRepository = userRepository;
         this.verificationRepository = verificationRepository;
         this.emailSender = emailSender;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
-        this.codeSecret = codeSecret.getBytes(StandardCharsets.UTF_8);
-        this.ttlSeconds = ttlSeconds;
-        this.resendCooldownSeconds = resendCooldownSeconds;
-        this.maxAttempts = maxAttempts;
     }
 
     @Override
@@ -202,7 +202,7 @@ public class EmailAuthServiceImpl implements EmailAuthService {
     private String hashCode(String email, String code) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            mac.init(new SecretKeySpec(codeSecret, HMAC_ALGORITHM));
+            mac.init(new SecretKeySpec(codeSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
             return HexFormat.of().formatHex(mac.doFinal((email + ":" + code).getBytes(StandardCharsets.UTF_8)));
         } catch (Exception exception) {
             throw new IllegalStateException("Cannot hash verification code", exception);

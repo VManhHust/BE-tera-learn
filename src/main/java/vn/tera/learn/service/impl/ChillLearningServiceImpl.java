@@ -24,6 +24,7 @@ import vn.tera.learn.repository.LessonSectionQuestionRepository;
 import vn.tera.learn.repository.LessonSectionRepository;
 import vn.tera.learn.repository.UserLessonProgressRepository;
 import vn.tera.learn.service.ChillLearningService;
+import vn.tera.learn.service.PlusAccessService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +44,7 @@ public class ChillLearningServiceImpl implements ChillLearningService {
     private final LearningSessionAnswerRepository answerRepository;
     private final LessonSectionRepository sectionRepository;
     private final UserLessonProgressRepository progressRepository;
+    private final PlusAccessService plusAccessService;
 
     public ChillLearningServiceImpl(
             LearningSessionRepository sessionRepository,
@@ -50,7 +52,8 @@ public class ChillLearningServiceImpl implements ChillLearningService {
             LessonQuestionOptionRepository optionRepository,
             LearningSessionAnswerRepository answerRepository,
             LessonSectionRepository sectionRepository,
-            UserLessonProgressRepository progressRepository
+            UserLessonProgressRepository progressRepository,
+            PlusAccessService plusAccessService
     ) {
         this.sessionRepository = sessionRepository;
         this.questionRepository = questionRepository;
@@ -58,6 +61,7 @@ public class ChillLearningServiceImpl implements ChillLearningService {
         this.answerRepository = answerRepository;
         this.sectionRepository = sectionRepository;
         this.progressRepository = progressRepository;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
@@ -369,6 +373,7 @@ public class ChillLearningServiceImpl implements ChillLearningService {
     private LearningSession requireChillSession(Long userId, Long sessionId) {
         LearningSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phiên học"));
+        plusAccessService.requireLessonAccess(session.getUser(), session.getLesson());
         if (!session.getMode().isImmediateFeedback()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phiên học không thuộc chế độ vừa học vừa chill");
         }

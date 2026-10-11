@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import vn.tera.learn.dto.AchievementResponse;
+import vn.tera.learn.dto.StreakStats;
 import vn.tera.learn.repository.AchievementRepository;
 import vn.tera.learn.repository.UserRepository;
 import vn.tera.learn.service.AchievementService;
@@ -26,13 +27,16 @@ public class AchievementServiceImpl implements AchievementService {
 
     private final AchievementRepository achievementRepository;
     private final UserRepository userRepository;
+    private final AchievementMath achievementMath;
 
     public AchievementServiceImpl(
             AchievementRepository achievementRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            AchievementMath achievementMath
     ) {
         this.achievementRepository = achievementRepository;
         this.userRepository = userRepository;
+        this.achievementMath = achievementMath;
     }
 
     @Override
@@ -46,15 +50,15 @@ public class AchievementServiceImpl implements AchievementService {
         Instant calculatedAt = Instant.now();
         AchievementRepository.SummarySource source = achievementRepository.findSummary(userId);
         List<LocalDate> learningDates = achievementRepository.findLearningDates(userId);
-        AchievementMath.StreakStats streak = AchievementMath.streak(
+        StreakStats streak = achievementMath.streak(
                 achievementRepository.findStreakDates(userId), today
         );
 
-        long totalXp = AchievementMath.totalXp(
-                source.answeredQuestions(), source.correctAnswers(), source.completedLessons()
+        long totalXp = achievementMath.totalXp(
+                source.getAnsweredQuestions(), source.getCorrectAnswers(), source.getCompletedLessons()
         );
         int level = Math.toIntExact(totalXp / XP_PER_LEVEL + 1);
-        double accuracy = percent(source.correctAnswers(), source.answeredQuestions());
+        double accuracy = percent(source.getCorrectAnswers(), source.getAnsweredQuestions());
         String rank = rankFor(level);
         LocalDate lastActivityDate = learningDates.isEmpty() ? null : learningDates.get(learningDates.size() - 1);
 
@@ -62,22 +66,22 @@ public class AchievementServiceImpl implements AchievementService {
                 totalXp,
                 level,
                 rank,
-                source.completedLessons(),
-                source.completedSections(),
-                source.answeredQuestions(),
-                source.correctAnswers(),
+                source.getCompletedLessons(),
+                source.getCompletedSections(),
+                source.getAnsweredQuestions(),
+                source.getCorrectAnswers(),
                 roundOneDecimal(accuracy),
-                source.totalStudySeconds(),
+                source.getTotalStudySeconds(),
                 learningDates.size(),
-                streak.current(),
-                streak.longest(),
+                streak.getCurrent(),
+                streak.getLongest(),
                 lastActivityDate
         );
 
         achievementRepository.saveSnapshot(userId, new AchievementRepository.AchievementSnapshot(
-                totalXp, level, rank, source.completedLessons(), source.completedSections(),
-                source.answeredQuestions(), source.correctAnswers(), roundOneDecimal(accuracy),
-                source.totalStudySeconds(), learningDates.size(), streak.current(), streak.longest(),
+                totalXp, level, rank, source.getCompletedLessons(), source.getCompletedSections(),
+                source.getAnsweredQuestions(), source.getCorrectAnswers(), roundOneDecimal(accuracy),
+                source.getTotalStudySeconds(), learningDates.size(), streak.getCurrent(), streak.getLongest(),
                 lastActivityDate, calculatedAt
         ));
 
@@ -124,45 +128,45 @@ public class AchievementServiceImpl implements AchievementService {
             long earnedXp = earnedXp(week);
             cumulativeXp += earnedXp;
             result.add(new AchievementResponse.WeeklyGrowth(
-                    week.weekStart(),
-                    week.weekStart().format(formatter),
+                    week.getWeekStart(),
+                    week.getWeekStart().format(formatter),
                     earnedXp,
                     cumulativeXp,
-                    week.studySeconds(),
-                    week.completedLessons()
+                    week.getStudySeconds(),
+                    week.getCompletedLessons()
             ));
         }
         return result;
     }
 
     private long earnedXp(AchievementRepository.WeeklyGrowthSource week) {
-        return AchievementMath.totalXp(
-                week.answeredQuestions(), week.correctAnswers(), week.completedLessons()
+        return achievementMath.totalXp(
+                week.getAnsweredQuestions(), week.getCorrectAnswers(), week.getCompletedLessons()
         );
     }
 
     private AchievementResponse.SubjectMastery toSubjectMastery(
             AchievementRepository.SubjectMasterySource source
     ) {
-        int progress = clampPercent(Math.round((float) percent(source.completedUnits(), source.totalUnits())));
-        int accuracy = clampPercent(Math.round((float) percent(source.correctAnswers(), source.answeredQuestions())));
-        int mastery = source.answeredQuestions() == 0
+        int progress = clampPercent(Math.round((float) percent(source.getCompletedUnits(), source.getTotalUnits())));
+        int accuracy = clampPercent(Math.round((float) percent(source.getCorrectAnswers(), source.getAnsweredQuestions())));
+        int mastery = source.getAnsweredQuestions() == 0
                 ? progress
                 : clampPercent(Math.round(progress * 0.65f + accuracy * 0.35f));
         return new AchievementResponse.SubjectMastery(
-                source.subjectCode(), source.subjectName(), source.accent(), source.completedLessons(),
-                source.totalLessons(), source.answeredQuestions(), source.correctAnswers(), progress,
+                source.getSubjectCode(), source.getSubjectName(), source.getAccent(), source.getCompletedLessons(),
+                source.getTotalLessons(), source.getAnsweredQuestions(), source.getCorrectAnswers(), progress,
                 accuracy, mastery
         );
     }
 
     private List<AchievementResponse.Milestone> buildMilestones(AchievementResponse.Summary summary) {
         return List.of(
-                milestone("FIRST_LESSON", "Bước chân đầu tiên", "Hoàn thành bài học đầu tiên", summary.completedLessons(), 1),
-                milestone("FOCUS_HOUR", "Một giờ tập trung", "Tích lũy 60 phút học thật", summary.totalStudySeconds(), 3600),
-                milestone("TEN_LESSONS", "Nhà khám phá bền bỉ", "Hoàn thành 10 bài học", summary.completedLessons(), 10),
-                milestone("HUNDRED_ANSWERS", "Tư duy sắc bén", "Trả lời 100 câu hỏi", summary.answeredQuestions(), 100),
-                milestone("SEVEN_DAY_STREAK", "Nhịp học 7 ngày", "Duy trì chuỗi điểm danh 7 ngày", summary.longestStreakDays(), 7)
+                milestone("FIRST_LESSON", "Bước chân đầu tiên", "Hoàn thành bài học đầu tiên", summary.getCompletedLessons(), 1),
+                milestone("FOCUS_HOUR", "Một giờ tập trung", "Tích lũy 60 phút học thật", summary.getTotalStudySeconds(), 3600),
+                milestone("TEN_LESSONS", "Nhà khám phá bền bỉ", "Hoàn thành 10 bài học", summary.getCompletedLessons(), 10),
+                milestone("HUNDRED_ANSWERS", "Tư duy sắc bén", "Trả lời 100 câu hỏi", summary.getAnsweredQuestions(), 100),
+                milestone("SEVEN_DAY_STREAK", "Nhịp học 7 ngày", "Duy trì chuỗi điểm danh 7 ngày", summary.getLongestStreakDays(), 7)
         );
     }
 
@@ -190,36 +194,36 @@ public class AchievementServiceImpl implements AchievementService {
                 new AchievementResponse.Recommendation(
                         "CONTINUE_LESSON",
                         "Hoàn thành bài đang học dở",
-                        "Bạn đang ở phần " + lesson.currentUnit() + "/" + lesson.totalUnits()
-                                + " của “" + lesson.title() + "”. Học tiếp để giữ mạch kiến thức.",
+                        "Bạn đang ở phần " + lesson.getCurrentUnit() + "/" + lesson.getTotalUnits()
+                                + " của “" + lesson.getTitle() + "”. Học tiếp để giữ mạch kiến thức.",
                         "Học tiếp",
-                        lesson.lessonId(),
-                        lesson.subjectCode()
+                        lesson.getLessonId(),
+                        lesson.getSubjectCode()
                 )
         ));
 
         subjects.stream()
-                .filter(subject -> subject.totalLessons() > 0 && subject.progressPercent() < 100)
+                .filter(subject -> subject.getTotalLessons() > 0 && subject.getProgressPercent() < 100)
                 .min(Comparator
                         .comparingInt((AchievementResponse.SubjectMastery subject) ->
-                                subject.progressPercent() > 0 || subject.answeredQuestions() > 0 ? 0 : 1)
-                        .thenComparingInt(AchievementResponse.SubjectMastery::masteryPercent))
-                .flatMap(subject -> achievementRepository.findRecommendedLesson(userId, subject.subjectCode())
+                                subject.getProgressPercent() > 0 || subject.getAnsweredQuestions() > 0 ? 0 : 1)
+                        .thenComparingInt(AchievementResponse.SubjectMastery::getMasteryPercent))
+                .flatMap(subject -> achievementRepository.findRecommendedLesson(userId, subject.getSubjectCode())
                         .map(lesson -> new AchievementResponse.Recommendation(
                                 "STRENGTHEN_SUBJECT",
-                                subject.answeredQuestions() > 0 && subject.accuracyPercent() < 70
-                                        ? "Củng cố điểm yếu ở " + subject.subjectName()
-                                        : "Mở rộng lộ trình " + subject.subjectName(),
-                                "Bài “" + lesson.title() + "” phù hợp để nâng mức làm chủ hiện tại từ "
-                                        + subject.masteryPercent() + "%.",
+                                subject.getAnsweredQuestions() > 0 && subject.getAccuracyPercent() < 70
+                                        ? "Củng cố điểm yếu ở " + subject.getSubjectName()
+                                        : "Mở rộng lộ trình " + subject.getSubjectName(),
+                                "Bài “" + lesson.getTitle() + "” phù hợp để nâng mức làm chủ hiện tại từ "
+                                        + subject.getMasteryPercent() + "%.",
                                 "Xem bài gợi ý",
-                                lesson.lessonId(),
-                                subject.subjectCode()
+                                lesson.getLessonId(),
+                                subject.getSubjectCode()
                         )))
                 .ifPresent(result::add);
 
-        long currentWeekSeconds = growth.isEmpty() ? 0 : growth.get(growth.size() - 1).studySeconds();
-        if (currentWeekSeconds < 90 * 60L || summary.currentStreakDays() < 3) {
+        long currentWeekSeconds = growth.isEmpty() ? 0 : growth.get(growth.size() - 1).getStudySeconds();
+        if (currentWeekSeconds < 90 * 60L || summary.getCurrentStreakDays() < 3) {
             result.add(new AchievementResponse.Recommendation(
                     "BUILD_HABIT",
                     "Tạo nhịp học 15 phút mỗi ngày",

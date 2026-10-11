@@ -20,6 +20,7 @@ import vn.tera.learn.repository.LessonSectionLearningModeRepository;
 import vn.tera.learn.repository.LessonSectionRepository;
 import vn.tera.learn.repository.UserRepository;
 import vn.tera.learn.service.LearningModeService;
+import vn.tera.learn.service.PlusAccessService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -32,26 +33,30 @@ public class LearningModeServiceImpl implements LearningModeService {
     private final LessonSectionLearningModeRepository sectionModeRepository;
     private final LearningSessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final PlusAccessService plusAccessService;
 
     public LearningModeServiceImpl(
             LessonRepository lessonRepository,
             LessonSectionRepository sectionRepository,
             LessonSectionLearningModeRepository sectionModeRepository,
             LearningSessionRepository sessionRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            PlusAccessService plusAccessService
     ) {
         this.lessonRepository = lessonRepository;
         this.sectionRepository = sectionRepository;
         this.sectionModeRepository = sectionModeRepository;
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public LearningModeSelectionResponse getLearningModes(Long userId, Long lessonId, Long sectionId) {
-        requireUser(userId);
+        User user = requireUser(userId);
         Lesson lesson = requireLesson(lessonId);
+        plusAccessService.requireLessonAccess(user, lesson);
         LessonSection section = requireSection(lessonId, sectionId);
 
         LearningModeSelectionResponse response = new LearningModeSelectionResponse();
@@ -104,6 +109,7 @@ public class LearningModeServiceImpl implements LearningModeService {
         User user = userRepository.findForSessionStart(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
         Lesson lesson = requireLesson(lessonId);
+        plusAccessService.requireLessonAccess(user, lesson);
         LessonSection section = requireSection(lessonId, sectionId);
         LearningMode mode = sectionModeRepository
                 .findBySectionIdAndModeIdAndEnabledTrue(sectionId, request.getModeId())

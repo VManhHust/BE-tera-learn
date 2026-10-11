@@ -1,5 +1,8 @@
 package vn.tera.learn.service.impl;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +49,8 @@ public class FreeTrialServiceImpl implements FreeTrialService {
     @Transactional(readOnly = true)
     public FreeTrialResponse getFreeTrial() {
         TrialContent content = requireTrialContent();
-        Lesson lesson = content.lesson();
-        LessonSection section = content.section();
+        Lesson lesson = content.getLesson();
+        LessonSection section = content.getSection();
         List<LessonSectionQuestion> questions = questionRepository
                 .findAllBySectionIdAndActiveTrueOrderBySortOrderAsc(section.getId());
 
@@ -60,6 +63,7 @@ public class FreeTrialServiceImpl implements FreeTrialService {
         response.setGrade(lesson.getGrade());
         response.setDifficulty(lesson.getDifficulty().name());
         response.setProgram(lesson.getProgram().name());
+        response.setPlusRequired(lesson.isPlusRequired());
         response.setSubjectCode(lesson.getSubject().getCode());
         response.setSubjectName(lesson.getSubject().getName());
         response.setSubjectShortName(lesson.getSubject().getShortName());
@@ -102,7 +106,7 @@ public class FreeTrialServiceImpl implements FreeTrialService {
     public FreeTrialAnswerResponse submitAnswer(Long questionId, FreeTrialAnswerRequest request) {
         TrialContent content = requireTrialContent();
         LessonSectionQuestion question = questionRepository
-                .findByIdAndSectionIdAndActiveTrue(questionId, content.section().getId())
+                .findByIdAndSectionIdAndActiveTrue(questionId, content.getSection().getId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Không tìm thấy câu hỏi trong phần học thử"
@@ -163,6 +167,11 @@ public class FreeTrialServiceImpl implements FreeTrialService {
         return new TrialContent(lesson, section);
     }
 
-    private record TrialContent(Lesson lesson, LessonSection section) {
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class TrialContent {
+        private Lesson lesson;
+        private LessonSection section;
     }
 }

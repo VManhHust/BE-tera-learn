@@ -2,6 +2,9 @@ package vn.tera.learn.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,16 +105,16 @@ public class PaymentService {
 
         Optional<PaymentOrder> existing = paymentOrderRepository
                 .findFirstByUserIdAndPlanCodeAndStatusAndExpiresAtAfterOrderByCreatedAtDesc(
-                        userId, plan.code(), PaymentOrderStatus.PENDING, now
+                        userId, plan.getCode(), PaymentOrderStatus.PENDING, now
                 );
         if (existing.isPresent()) return toResponse(existing.get());
 
         PaymentOrder order = new PaymentOrder();
         order.setId(UUID.randomUUID());
         order.setUser(user);
-        order.setPlanCode(plan.code());
+        order.setPlanCode(plan.getCode());
         order.setPaymentCode(generatePaymentCode());
-        order.setAmount(plan.amount());
+        order.setAmount(plan.getAmount());
         order.setStatus(PaymentOrderStatus.PENDING);
         order.setExpiresAt(now.plus(orderExpiryMinutes, ChronoUnit.MINUTES));
         order.setCreatedAt(now);
@@ -191,8 +194,8 @@ public class PaymentService {
         PlusPeriod period = activatePlus(user, plan, now);
         order.setStatus(PaymentOrderStatus.PAID);
         order.setPaidAt(now);
-        order.setPlusStartsAt(period.startsAt());
-        order.setPlusExpiresAt(period.expiresAt());
+        order.setPlusStartsAt(period.getStartsAt());
+        order.setPlusExpiresAt(period.getExpiresAt());
         order.setSepayTransactionId(payload.getId());
         order.setBankReferenceCode(payload.getReferenceCode());
         order.setUpdatedAt(now);
@@ -204,7 +207,7 @@ public class PaymentService {
                 userId, PaymentOrderStatus.PAID
         ).ifPresent(currentOrder -> {
             PlusPlanConfig currentPlan = findPlan(currentOrder.getPlanCode(), false);
-            if (currentPlan != null && requestedPlan.sortOrder() <= currentPlan.sortOrder()) {
+            if (currentPlan != null && requestedPlan.getSortOrder() <= currentPlan.getSortOrder()) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "Bạn đang dùng gói này. Vui lòng chọn gói cao hơn để nâng cấp."
@@ -218,11 +221,11 @@ public class PaymentService {
         boolean active = isPlusActive(user, now);
         Instant grantedStartsAt = active && !isLifetime(currentExpiry) ? currentExpiry : now;
         Instant newExpiry;
-        if (plan.durationDays() == null || isLifetime(currentExpiry)) {
+        if (plan.getDurationDays() == null || isLifetime(currentExpiry)) {
             newExpiry = LIFETIME_EXPIRY;
         } else {
             Instant start = currentExpiry != null && currentExpiry.isAfter(now) ? currentExpiry : now;
-            newExpiry = start.plus(plan.durationDays(), ChronoUnit.DAYS);
+            newExpiry = start.plus(plan.getDurationDays(), ChronoUnit.DAYS);
         }
         if (!active || user.getPlusStartsAt() == null) user.setPlusStartsAt(now);
         user.setPlusExpiresAt(newExpiry);
@@ -352,7 +355,7 @@ public class PaymentService {
 
     private String resolvePlanName(String planCode) {
         PlusPlanConfig plan = findPlan(planCode, false);
-        return plan == null ? planCode : plan.name();
+        return plan == null ? planCode : plan.getName();
     }
 
     private String normalizePlanCode(String value) {
@@ -373,20 +376,42 @@ public class PaymentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
     }
 
-    public record PlusPlanResponse(
-            long id,
-            String code,
-            String name,
-            String description,
-            long amount,
-            Integer durationDays,
-            String benefits,
-            String specialBenefit,
-            String status,
-            boolean featured,
-            int sortOrder
-    ) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlusPlanResponse {
+        private long id;
+        private String code;
+        private String name;
+        private String description;
+        private long amount;
+        private Integer durationDays;
+        private String benefits;
+        private String specialBenefit;
+        private String status;
+        private boolean featured;
+        private int sortOrder;
 
-    private record PlusPlanConfig(String code, String name, long amount, Integer durationDays, int sortOrder) {}
-    private record PlusPeriod(Instant startsAt, Instant expiresAt) {}
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class PlusPlanConfig {
+        private String code;
+        private String name;
+        private long amount;
+        private Integer durationDays;
+        private int sortOrder;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class PlusPeriod {
+        private Instant startsAt;
+        private Instant expiresAt;
+
+    }
 }

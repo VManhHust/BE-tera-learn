@@ -9,6 +9,7 @@ import vn.tera.learn.entity.enums.LearningSessionStatus;
 import vn.tera.learn.repository.LearningSessionRepository;
 import vn.tera.learn.repository.StudyActivityRepository;
 import vn.tera.learn.service.StudyActivityService;
+import vn.tera.learn.service.PlusAccessService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,13 +24,16 @@ public class StudyActivityServiceImpl implements StudyActivityService {
 
     private final LearningSessionRepository sessionRepository;
     private final StudyActivityRepository activityRepository;
+    private final PlusAccessService plusAccessService;
 
     public StudyActivityServiceImpl(
             LearningSessionRepository sessionRepository,
-            StudyActivityRepository activityRepository
+            StudyActivityRepository activityRepository,
+            PlusAccessService plusAccessService
     ) {
         this.sessionRepository = sessionRepository;
         this.activityRepository = activityRepository;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
@@ -59,8 +63,10 @@ public class StudyActivityServiceImpl implements StudyActivityService {
     }
 
     private LearningSession requireOwnedSession(Long userId, Long sessionId) {
-        return sessionRepository.findByIdAndUserId(sessionId, userId)
+        LearningSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phiên học"));
+        plusAccessService.requireLessonAccess(session.getUser(), session.getLesson());
+        return session;
     }
 
     private void finishTracker(

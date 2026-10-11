@@ -11,12 +11,16 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "learning_session_answers")
 public class LearningSessionAnswer {
 
@@ -46,16 +50,4 @@ public class LearningSessionAnswer {
     )
     private Set<LessonQuestionOption> selectedOptions = new LinkedHashSet<>();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public LearningSession getSession() { return session; }
-    public void setSession(LearningSession session) { this.session = session; }
-    public LessonSectionQuestion getQuestion() { return question; }
-    public void setQuestion(LessonSectionQuestion question) { this.question = question; }
-    public boolean isCorrect() { return correct; }
-    public void setCorrect(boolean correct) { this.correct = correct; }
-    public Instant getSubmittedAt() { return submittedAt; }
-    public void setSubmittedAt(Instant submittedAt) { this.submittedAt = submittedAt; }
-    public Set<LessonQuestionOption> getSelectedOptions() { return selectedOptions; }
-    public void setSelectedOptions(Set<LessonQuestionOption> selectedOptions) { this.selectedOptions = selectedOptions; }
 }

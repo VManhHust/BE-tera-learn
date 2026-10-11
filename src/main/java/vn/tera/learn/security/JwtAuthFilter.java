@@ -12,7 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import vn.tera.learn.dto.ErrorResponse;
+import vn.tera.learn.dto.AuthErrorResponse;
 import vn.tera.learn.entity.enums.UserStatus;
 import vn.tera.learn.repository.UserRepository;
 
@@ -78,7 +78,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getWriter(), new ErrorResponse("Token invalid or expired"));
+            response.setCharacterEncoding("UTF-8");
+            objectMapper.writeValue(
+                    response.getWriter(),
+                    new AuthErrorResponse("Phiên đăng nhập không hợp lệ hoặc đã hết hạn.", "INVALID_TOKEN", null)
+            );
         }
     }
 }

@@ -11,9 +11,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import vn.tera.learn.entity.enums.LessonQuestionType;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "lesson_section_questions")
 public class LessonSectionQuestion {
 
@@ -47,22 +51,4 @@ public class LessonSectionQuestion {
     @Column(nullable = false)
     private boolean active = true;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public LessonSection getSection() { return section; }
-    public void setSection(LessonSection section) { this.section = section; }
-    public LessonQuestionType getQuestionType() { return questionType; }
-    public void setQuestionType(LessonQuestionType questionType) { this.questionType = questionType; }
-    public String getPrompt() { return prompt; }
-    public void setPrompt(String prompt) { this.prompt = prompt; }
-    public String getExplanation() { return explanation; }
-    public void setExplanation(String explanation) { this.explanation = explanation; }
-    public String getYoutubeTitle() { return youtubeTitle; }
-    public void setYoutubeTitle(String youtubeTitle) { this.youtubeTitle = youtubeTitle; }
-    public String getYoutubeUrl() { return youtubeUrl; }
-    public void setYoutubeUrl(String youtubeUrl) { this.youtubeUrl = youtubeUrl; }
-    public short getSortOrder() { return sortOrder; }
-    public void setSortOrder(short sortOrder) { this.sortOrder = sortOrder; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
 }

@@ -9,6 +9,7 @@ import vn.tera.learn.entity.*;
 import vn.tera.learn.entity.enums.*;
 import vn.tera.learn.repository.*;
 import vn.tera.learn.service.FocusedLearningService;
+import vn.tera.learn.service.PlusAccessService;
 import java.time.Instant;
 import java.time.Duration;
 import java.util.*;
@@ -23,16 +24,19 @@ public class FocusedLearningServiceImpl implements FocusedLearningService {
     private final LearningSessionAnswerRepository answers;
     private final FocusedChoiceRepository choices;
     private final UserLessonProgressRepository progress;
+    private final PlusAccessService plusAccessService;
 
     public FocusedLearningServiceImpl(LearningSessionRepository sessions, LessonSectionQuestionRepository questions,
             LessonQuestionOptionRepository options, LearningSessionAnswerRepository answers,
-            FocusedChoiceRepository choices, UserLessonProgressRepository progress) {
+            FocusedChoiceRepository choices, UserLessonProgressRepository progress,
+            PlusAccessService plusAccessService) {
         this.sessions = sessions;
         this.questions = questions;
         this.options = options;
         this.answers = answers;
         this.choices = choices;
         this.progress = progress;
+        this.plusAccessService = plusAccessService;
     }
 
     @Override
@@ -111,6 +115,7 @@ public class FocusedLearningServiceImpl implements FocusedLearningService {
     private LearningSession requireSession(Long userId, Long sessionId) {
         LearningSession session = sessions.findOwnedForUpdate(sessionId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phiên học"));
+        plusAccessService.requireLessonAccess(session.getUser(), session.getLesson());
         if (!"FOCUSED".equals(session.getMode().getCode())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phiên này không thuộc thử thách tập trung");
         }
@@ -236,28 +241,34 @@ public class FocusedLearningServiceImpl implements FocusedLearningService {
         Map<Long, LearningSessionAnswer> graded = new HashMap<>();
         if (complete) answers.findAllBySessionId(session.getId()).forEach(a -> graded.put(a.getQuestion().getId(), a));
         FocusedSessionResponse result = new FocusedSessionResponse();
-        result.sessionId = session.getId();
-        result.lessonId = session.getLesson().getId();
-        result.lessonTitle = session.getLesson().getTitle();
-        result.status = session.getStatus().name();
-        result.serverNow = Instant.now();
-        result.expiresAt = session.getExpiresAt();
-        result.durationSeconds = session.getFocusedDurationSeconds();
-        result.remainingSeconds = complete ? 0 : remainingAt(session, result.serverNow);
-        result.timedOut = session.isFocusedTimedOut();
-        result.answeredCount = (int) topic.stream().filter(q -> !drafts.getOrDefault(q.getId(), Set.of()).isEmpty()).count();
-        result.correctCount = (int) graded.values().stream().filter(LearningSessionAnswer::isCorrect).count();
-        result.questions = topic.stream().map(question -> {
+        Instant serverNow = Instant.now();
+        int answeredCount = (int) topic.stream()
+                .filter(q -> !drafts.getOrDefault(q.getId(), Set.of()).isEmpty())
+                .count();
+        result.setSessionId(session.getId());
+        result.setLessonId(session.getLesson().getId());
+        result.setLessonTitle(session.getLesson().getTitle());
+        result.setStatus(session.getStatus().name());
+        result.setServerNow(serverNow);
+        result.setExpiresAt(session.getExpiresAt());
+        result.setDurationSeconds(session.getFocusedDurationSeconds());
+        result.setRemainingSeconds(complete ? 0 : remainingAt(session, serverNow));
+        result.setTimedOut(session.isFocusedTimedOut());
+        result.setAnsweredCount(answeredCount);
+        result.setCorrectCount((int) graded.values().stream().filter(LearningSessionAnswer::isCorrect).count());
+        result.setQuestions(topic.stream().map(question -> {
             FocusedSessionResponse.Question item = new FocusedSessionResponse.Question();
-            item.id = question.getId();
-            item.sectionId = question.getSection().getId();
-            item.sectionNumber = question.getSection().getSortOrder();
-            item.sectionTitle = question.getSection().getTitle();
-            item.prompt = question.getPrompt();
-            item.questionType = question.getQuestionType().name();
+            item.setId(question.getId());
+            item.setSectionId(question.getSection().getId());
+            item.setSectionNumber(question.getSection().getSortOrder());
+            item.setSectionTitle(question.getSection().getTitle());
+            item.setPrompt(question.getPrompt());
+            item.setQuestionType(question.getQuestionType().name());
             var available = options.findAllByQuestionIdOrderBySortOrderAsc(question.getId());
-            item.options = available.stream().map(o -> new ChillLearningSessionResponse.Option(o.getId(), o.getLabel(), o.getContent())).toList();
-            item.selectedOptionIds = new ArrayList<>(drafts.getOrDefault(question.getId(), Set.of()));
+            item.setOptions(available.stream()
+                    .map(o -> new ChillLearningSessionResponse.Option(o.getId(), o.getLabel(), o.getContent()))
+                    .toList());
+            item.setSelectedOptionIds(new ArrayList<>(drafts.getOrDefault(question.getId(), Set.of())));
             if (complete && graded.containsKey(question.getId())) {
                 var answer = graded.get(question.getId());
                 ChillAnswerResponse review = new ChillAnswerResponse();
@@ -269,13 +280,13 @@ public class FocusedLearningServiceImpl implements FocusedLearningService {
                 review.setYoutubeTitle(question.getYoutubeTitle());
                 review.setYoutubeUrl(question.getYoutubeUrl());
                 review.setSubmittedAt(answer.getSubmittedAt());
-                review.setAnsweredCount(result.answeredCount);
+                review.setAnsweredCount(answeredCount);
                 review.setTotalQuestions(topic.size());
                 review.setSectionCompleted(true);
-                item.answer = review;
+                item.setAnswer(review);
             }
             return item;
-        }).toList();
+        }).toList());
         return result;
     }
 }

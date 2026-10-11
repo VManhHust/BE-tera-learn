@@ -6,8 +6,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "learning_modes")
 public class LearningMode {
 
@@ -50,30 +54,4 @@ public class LearningMode {
     @Column(nullable = false)
     private short sortOrder;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getTimeCaption() { return timeCaption; }
-    public void setTimeCaption(String timeCaption) { this.timeCaption = timeCaption; }
-    public String getFeedbackCaption() { return feedbackCaption; }
-    public void setFeedbackCaption(String feedbackCaption) { this.feedbackCaption = feedbackCaption; }
-    public Short getTimeLimitMinutes() { return timeLimitMinutes; }
-    public void setTimeLimitMinutes(Short timeLimitMinutes) { this.timeLimitMinutes = timeLimitMinutes; }
-    public boolean isImmediateFeedback() { return immediateFeedback; }
-    public void setImmediateFeedback(boolean immediateFeedback) { this.immediateFeedback = immediateFeedback; }
-    public String getAccent() { return accent; }
-    public void setAccent(String accent) { this.accent = accent; }
-    public String getIllustrationKey() { return illustrationKey; }
-    public void setIllustrationKey(String illustrationKey) { this.illustrationKey = illustrationKey; }
-    public String getIllustrationUrl() { return illustrationUrl; }
-    public void setIllustrationUrl(String illustrationUrl) { this.illustrationUrl = illustrationUrl; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
-    public short getSortOrder() { return sortOrder; }
-    public void setSortOrder(short sortOrder) { this.sortOrder = sortOrder; }
 }
